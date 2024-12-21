@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h> // Pour system()
+#include <stdlib.h>
 
 int is_ipv4_address(const char *input) {
     int dots = 0;
@@ -11,11 +11,11 @@ int is_ipv4_address(const char *input) {
         if (*ptr == '.') {
             dots++;
         } else if (!isdigit(*ptr)) {
-            return 0; // Non numérique et pas un point
+            return 0;
         }
         ptr++;
     }
-    return dots == 3; // Une IPv4 doit avoir exactement 3 points
+    return dots == 3;
 }
 
 int is_ipv6_address(const char *input) {
@@ -26,16 +26,16 @@ int is_ipv6_address(const char *input) {
         if (*ptr == ':') {
             colons++;
         } else if (!isxdigit(*ptr)) {
-            return 0; // Non héxadécimal et pas un double point
+            return 0; 
         }
         ptr++;
     }
-    return colons >= 2 && colons <= 7; // Une IPv6 doit avoir entre 2 et 7 double points
+    return colons >= 2 && colons <= 7;
 }
 
 void scan_with_nmap(const char *target) {
     char command[128];
-    snprintf(command, sizeof(command), "nmap %s", target); // Commande Nmap pour scanner la cible
+    snprintf(command, sizeof(command), "nmap %s", target); 
     int result = system(command);
     if (result != 0) {
         printf("Nmap scan failed.\n");
@@ -58,10 +58,10 @@ void ask_and_display_char() {
     char input[100];
 
     printf("Enter the target: ");
-    scanf(" %99s", input); // Lecture de la chaîne avec une limite de 99 caractères
+    scanf(" %99s", input); 
     printf("You entered: %s\n", input);
 
-    // Analyse de l'entrée
+
     analyze_input(input);
 }
 
