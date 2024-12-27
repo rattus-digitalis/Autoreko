@@ -1,0 +1,20 @@
+autoreko/
+│
+│
+├── src/                     # Code source principal
+│   ├── main.c               # Point d'entrée principal
+│   ├── utils.c              # Fonctions utilitaires
+│   ├── utils.h              # Header des fonctions utilitaires
+│   ├── scan.c               # Logique liée au scan
+│   ├── scan.h               # Header pour scan.c
+│   ├── fuzzing.c            # Logique de fuzzing
+│   ├── fuzzing.h            # Header pour fuzzing.c
+│   ├── ui.c                 # Interface utilisateur
+│   └── ui.h                 # Header pour ui.c
+│
+├── docs                     # Documentation
+│
+├── Notes                    # BlocNotes
+├── Makefile                 # Makefile principal
+├── README.md                # Documentation principale
+└── LICENSE                  # Licence du projet
