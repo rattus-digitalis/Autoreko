@@ -6,8 +6,10 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <pthread.h>
+#include <stdarg.h>
+
+FILE *output_file = NULL;
 
 int is_ipv4_address(const char *input) {
     struct sockaddr_in sa;
@@ -19,94 +21,100 @@ int is_ipv6_address(const char *input) {
     return inet_pton(AF_INET6, input, &(sa6.sin6_addr)) != 0;
 }
 
+void write_to_file(const char *format, ...) {
+    if (output_file) {
+        va_list args;
+        va_start(args, format);
+        vfprintf(output_file, format, args);
+        va_end(args);
+    }
+}
+
+void execute_command(const char *title, const char *command) {
+    printf("\n===== %s =====\n", title);
+    write_to_file("\n===== %s =====\n", title);
+
+    FILE *cmd_pipe = popen(command, "r");
+    if (!cmd_pipe) {
+        printf("Error executing command: %s\n", command);
+        write_to_file("Error executing command: %s\n", command);
+        return;
+    }
+
+    char buffer[256];
+    while (fgets(buffer, sizeof(buffer), cmd_pipe) != NULL) {
+        printf("%s", buffer);
+        write_to_file("%s", buffer);
+    }
+    pclose(cmd_pipe);
+}
+
 void *perform_dns_lookup(void *hostname) {
-    struct hostent *host;
-    struct in_addr **addr_list;
-
-    printf("Starting DNS Lookup...\n");
-
-    if ((host = gethostbyname((char *)hostname)) == NULL) {
-        printf("DNS lookup failed for %s\n", (char *)hostname);
-        pthread_exit(NULL);
-    }
-
-    addr_list = (struct in_addr **)host->h_addr_list;
-    printf("DNS lookup results for %s:\n", (char *)hostname);
-    for (int i = 0; addr_list[i] != NULL; i++) {
-        printf("  - %s\n", inet_ntoa(*addr_list[i]));
-    }
-
+    char command[256];
+    snprintf(command, sizeof(command), "nslookup %s", (char *)hostname);
+    execute_command("DNS Lookup", command);
     pthread_exit(NULL);
 }
 
-void *perform_light_scan(void *target) {
-    char *ip = (char *)target;
-    printf("Performing light scan on %s...\n", ip);
-    char command[128];
-    snprintf(command, sizeof(command), "nmap -sP %s", ip);
-    system(command);
-    pthread_exit(NULL);
-}
+void *perform_scan(void *args) {
+    char **params = (char **)args;
+    char *type = params[0];
+    char *target = params[1];
+    char command[256];
 
-void *perform_medium_scan(void *target) {
-    if (geteuid() != 0) {
-        printf("Medium scan requires sudo privileges. Please run the program as root.\n");
-        pthread_exit(NULL);
+    if (strcmp(type, "Light") == 0) {
+        snprintf(command, sizeof(command), "nmap -sP %s", target);
+        execute_command("Light Scan", command);
+    } else if (strcmp(type, "Medium") == 0) {
+        if (geteuid() != 0) {
+            printf("Medium scan requires sudo privileges.\n");
+            write_to_file("Medium scan requires sudo privileges.\n");
+            pthread_exit(NULL);
+        }
+        snprintf(command, sizeof(command), "nmap -v -sS %s", target);
+        execute_command("Medium Scan", command);
+    } else if (strcmp(type, "Hard") == 0) {
+        if (geteuid() != 0) {
+            printf("Hard scan requires sudo privileges.\n");
+            write_to_file("Hard scan requires sudo privileges.\n");
+            pthread_exit(NULL);
+        }
+        snprintf(command, sizeof(command), "nmap -A -sV  %s", target);
+        execute_command("Hard Scan", command);
+    } else if (strcmp(type, "Hard Full") == 0) {
+        if (geteuid() != 0) {
+            printf("Hard Full scan requires sudo privileges.\n");
+            write_to_file("Hard Full scan requires sudo privileges.\n");
+            pthread_exit(NULL);
+        }
+        snprintf(command, sizeof(command), "nmap -v -A -sV -p- %s", target);
+        execute_command("Hard Full Scan", command);
     }
-    char *ip = (char *)target;
-    printf("Performing medium scan on %s...\n", ip);
-    char command[128];
-    snprintf(command, sizeof(command), "nmap -v -sS  %s", ip);
-    system(command);
-    pthread_exit(NULL);
-}
-
-void *perform_hard_scan(void *target) {
-    if (geteuid() != 0) {
-        printf("Hard scan requires sudo privileges. Please run the program as root.\n");
-        pthread_exit(NULL);
-    }
-    char *ip = (char *)target;
-    printf("Performing hard scan on %s...\n", ip);
-    char command[128];
-    snprintf(command, sizeof(command), "nmap -v -A -sV  %s", ip);
-    system(command);
-    pthread_exit(NULL);
-}
-
-void *perform_hard_full_scan(void *target) {
-    if (geteuid() != 0) {
-        printf("Hard Full scan requires sudo privileges. Please run the program as root.\n");
-        pthread_exit(NULL);
-    }
-    char *ip = (char *)target;
-    printf("Performing hard full scan on %s...\n", ip);
-    char command[128];
-    snprintf(command, sizeof(command), "nmap -v -A -sV -p-  %s", ip);
-    system(command);
     pthread_exit(NULL);
 }
 
 void *validate_ip(void *input) {
     char *ip = (char *)input;
-
-    printf("Starting IP validation...\n");
+    printf("\n===== IP Validation =====\n");
+    write_to_file("\n===== IP Validation =====\n");
 
     if (is_ipv4_address(ip)) {
         printf("%s is a valid IPv4 address.\n", ip);
+        write_to_file("%s is a valid IPv4 address.\n", ip);
     } else if (is_ipv6_address(ip)) {
         printf("%s is a valid IPv6 address.\n", ip);
+        write_to_file("%s is a valid IPv6 address.\n", ip);
     } else {
         printf("%s is not a valid IP address.\n", ip);
+        write_to_file("%s is not a valid IP address.\n", ip);
     }
-
     pthread_exit(NULL);
 }
 
 int main() {
-    char input[100];
-    int intensity_choice;
-    pthread_t dns_thread, scan_thread, ip_thread;
+    char input[100] = {0};
+    int intensity_choice = 0;
+    char output_file_path[256] = {0};
 
     printf("          _    _ _______ ____         _____      _     ___  \n");
     printf("     /\\  | |  | |__   __/ __ \\       |  __ \\    | |   / _ \\ \n");
@@ -116,7 +124,6 @@ int main() {
     printf(" /_/    \\_\\____/   |_|  \\____/       |_|  \\_\\___|_|\\_\\\\___/ \n");
     printf("                                                            \n");
     printf("                                                            \n");
-
 
     printf("Enter the target (IP or domain): ");
     scanf(" %99s", input);
@@ -129,29 +136,57 @@ int main() {
     printf("Enter your choice (1/2/3/4): ");
     scanf(" %d", &intensity_choice);
 
-    printf("Launching all tests on %s with intensity %d...\n", input, intensity_choice);
+    printf("Enter the output file path (leave empty for no file): ");
+    getchar(); // Clear newline from input buffer
+    fgets(output_file_path, sizeof(output_file_path), stdin);
+    output_file_path[strcspn(output_file_path, "\n")] = 0;
 
+    if (strlen(output_file_path) > 0) {
+        output_file = fopen(output_file_path, "w");
+        if (!output_file) {
+            printf("Error: Unable to open file %s for writing.\n", output_file_path);
+            return 1;
+        }
+    }
+
+    printf("\nLaunching tests for target: %s with intensity level %d\n", input, intensity_choice);
+    write_to_file("\nLaunching tests for target: %s with intensity level %d\n", input, intensity_choice);
+
+    pthread_t dns_thread, scan_thread, ip_thread;
     pthread_create(&dns_thread, NULL, perform_dns_lookup, (void *)input);
     pthread_create(&ip_thread, NULL, validate_ip, (void *)input);
 
-    if (intensity_choice == 1) {
-        pthread_create(&scan_thread, NULL, perform_light_scan, (void *)input);
-    } else if (intensity_choice == 2) {
-        pthread_create(&scan_thread, NULL, perform_medium_scan, (void *)input);
-    } else if (intensity_choice == 3) {
-        pthread_create(&scan_thread, NULL, perform_hard_scan, (void *)input);
-    } else if (intensity_choice == 4) {
-        pthread_create(&scan_thread, NULL, perform_hard_full_scan, (void *)input);
-    } else {
-        printf("Invalid choice. Defaulting to Light scan.\n");
-        pthread_create(&scan_thread, NULL, perform_light_scan, (void *)input);
+    char *scan_args[2];
+    scan_args[1] = input;
+
+    switch (intensity_choice) {
+        case 1:
+            scan_args[0] = "Light";
+            break;
+        case 2:
+            scan_args[0] = "Medium";
+            break;
+        case 3:
+            scan_args[0] = "Hard";
+            break;
+        case 4:
+            scan_args[0] = "Hard Full";
+            break;
+        default:
+            printf("Invalid choice. Defaulting to Light scan.\n");
+            scan_args[0] = "Light";
     }
+    pthread_create(&scan_thread, NULL, perform_scan, scan_args);
 
     pthread_join(dns_thread, NULL);
     pthread_join(scan_thread, NULL);
     pthread_join(ip_thread, NULL);
 
+    if (output_file) {
+        fclose(output_file);
+        printf("Results saved to %s\n", output_file_path);
+    }
+
     printf("All tests completed.\n");
     return 0;
 }
-
