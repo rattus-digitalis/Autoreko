@@ -1,0 +1,13 @@
+autoreko/
+├── src/                    # Dossier contenant tous les fichiers source
+│   ├── main.c              # Fichier principal de l'application
+│   ├── utils.c             # Fonctions utilitaires générales (ex. validation IP)
+│   ├── utils.h             # Déclarations des fonctions utilitaires
+│   ├── scan.c              # Fonctions liées à l'analyse/scanner (ex. nmap)
+│   ├── scan.h              # Déclarations des fonctions de scan
+│   ├── fuzzing.c           # Fonctions liées au fuzzing (ex. ffuf)
+│   ├── fuzzing.h           # Déclarations des fonctions de fuzzing
+│   ├── ui.c                # Fonctions liées à l'interface utilisateur
+│   ├── ui.h                # Déclarations des fonctions d'interface utilisateur
+├── Makefile                # Fichier de construction
+├── README.md               # Documentation du projet
