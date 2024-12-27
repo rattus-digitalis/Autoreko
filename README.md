@@ -1,4 +1,4 @@
-# Autoreko
+p# Autoreko
 
 ```
      _        _____           ____      _     ___  
@@ -38,7 +38,7 @@ autoreko -t target_ip -o output_directory
 For advanced options:
 
 ```bash
-autoreko --help
+autoreko -h
 ```
 
 ---
