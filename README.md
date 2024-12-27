@@ -1,4 +1,4 @@
-# Autoreko
+# AutO-RekO
 
 
 
@@ -11,7 +11,7 @@
                                                    
 ```
 
-**Autoreko** is an automatic enumeration tool designed to accelerate and optimize the reconnaissance phase during penetration tests.
+**AutO-RekO** is an automatic enumeration tool designed to accelerate and optimize the reconnaissance phase during penetration tests.
 
 ---
 
@@ -25,13 +25,13 @@
 
 ## ⚙️ Development Status
 
-Autoreko is currently under development and will be available soon. Stay tuned for updates!
+AutO-RekO is currently under development and will be available soon. Stay tuned for updates!
 
 ---
 
 ## 🚀 Usage
 
-To use Autoreko, follow these examples:
+To use AutO-RekO, follow these examples:
 
 ### Basic Enumeration
 
