@@ -3,12 +3,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "scan.h"
 #include "fuzzing.h"
 #include "utils.h"
 #include "ui.h"
 
+
 FILE *output_file = NULL;
+
+void perform_tests(char * str, int intensity_choice);
+
+void configure_output_file(char * str);
+
+void validate_input(int intensity_choice, char * str);
 
 int main(int argc, char *argv[]) {
     char input[100] = {0};

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include "utils.h"
+#include <string.h>
 
 
 int is_ipv4_address(const char *input) {
@@ -23,6 +24,19 @@ void print_help() {
     printf("  -u <URL>       Specify the URL to validate\n");
     printf("  -o <File>      Specify the output file\n");
     printf("  -W <Wordlist>  Specify the wordlist for fuzzing\n");
+}
+
+
+void pthread_exit(void * p);
+FILE *output_file = NULL;
+
+void configure_output_file(const char *output_file_path) {
+    if (strlen(output_file_path) > 0) {
+        output_file = fopen(output_file_path, "w");
+        if (!output_file) {
+            perror("Erreur à l'ouverture du fichier de sortie");
+        }
+    }
 }
 
 

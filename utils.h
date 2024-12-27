@@ -3,11 +3,8 @@
 
 int is_ipv4_address(const char *input);
 int is_ipv6_address(const char *input);
-
-
 void *validate_ip(void *input);
-
-
 void print_help(void);
+void configure_output_file(const char *output_file_path);
 
 #endif 

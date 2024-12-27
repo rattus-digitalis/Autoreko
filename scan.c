@@ -3,6 +3,8 @@
 #include <string.h>
 #include "scan.h"
 
+void pthread_exit(void * p);
+
 void *perform_scan(void *args) {
     char **params = (char **)args;
     const char *type = params[0];
