@@ -36,7 +36,7 @@ void execute_command(const char *title, const char *command) {
 
     FILE *cmd_pipe = popen(command, "r");
     if (!cmd_pipe) {
-        printf("Error executing command: %s\n", command);
+        fprintf(stderr, "Error executing command: %s\n", command);
         write_to_file("Error executing command: %s\n", command);
         return;
     }
@@ -58,8 +58,8 @@ void *perform_dns_lookup(void *hostname) {
 
 void *perform_scan(void *args) {
     char **params = (char **)args;
-    char *type = params[0];
-    char *target = params[1];
+    const char *type = params[0];
+    const char *target = params[1];
     char command[256];
 
     if (strcmp(type, "Light") == 0) {
@@ -67,24 +67,24 @@ void *perform_scan(void *args) {
         execute_command("Light Scan", command);
     } else if (strcmp(type, "Medium") == 0) {
         if (geteuid() != 0) {
-            printf("Medium scan requires sudo privileges.\n");
-            write_to_file("Medium scan requires sudo privileges.\n");
+            fprintf(stderr, "Medium scan requires root privileges.\n");
+            write_to_file("Medium scan requires root privileges.\n");
             pthread_exit(NULL);
         }
         snprintf(command, sizeof(command), "nmap -v -sS %s", target);
         execute_command("Medium Scan", command);
     } else if (strcmp(type, "Hard") == 0) {
         if (geteuid() != 0) {
-            printf("Hard scan requires sudo privileges.\n");
-            write_to_file("Hard scan requires sudo privileges.\n");
+            fprintf(stderr, "Hard scan requires root privileges.\n");
+            write_to_file("Hard scan requires root privileges.\n");
             pthread_exit(NULL);
         }
-        snprintf(command, sizeof(command), "nmap -A -sV  %s", target);
+        snprintf(command, sizeof(command), "nmap -A -sV %s", target);
         execute_command("Hard Scan", command);
     } else if (strcmp(type, "Hard Full") == 0) {
         if (geteuid() != 0) {
-            printf("Hard Full scan requires sudo privileges.\n");
-            write_to_file("Hard Full scan requires sudo privileges.\n");
+            fprintf(stderr, "Hard Full scan requires root privileges.\n");
+            write_to_file("Hard Full scan requires root privileges.\n");
             pthread_exit(NULL);
         }
         snprintf(command, sizeof(command), "nmap -v -A -sV -p- %s", target);
@@ -94,7 +94,7 @@ void *perform_scan(void *args) {
 }
 
 void *validate_ip(void *input) {
-    char *ip = (char *)input;
+    const char *ip = (char *)input;
     printf("\n===== IP Validation =====\n");
     write_to_file("\n===== IP Validation =====\n");
 
@@ -111,10 +111,20 @@ void *validate_ip(void *input) {
     pthread_exit(NULL);
 }
 
-int main() {
+void print_help() {
+    printf("Usage:\n");
+    printf("  -h            Display this help message\n");
+    printf("  -t <Target>   Specify the target IP or domain\n");
+    printf("  -i <Intensity>  Specify the scan intensity (1-4)\n");
+    printf("  -u <URL>       Specify the URL to validate\n");
+    printf("  -o <File>      Specify the output file\n");
+}
+
+int main(int argc, char *argv[]) {
     char input[100] = {0};
     int intensity_choice = 0;
     char output_file_path[256] = {0};
+    char url[256] = {0};
 
     printf("          _    _ _______ ____         _____      _     ___  \n");
     printf("     /\\  | |  | |__   __/ __ \\       |  __ \\    | |   / _ \\ \n");
@@ -125,26 +135,70 @@ int main() {
     printf("                                                            \n");
     printf("                                                            \n");
 
-    printf("Enter the target (IP or domain): ");
-    scanf(" %99s", input);
 
-    printf("Choose scan intensity:\n");
-    printf("1 - Light (ping scan)\n");
-    printf("2 - Medium (stealth scan)\n");
-    printf("3 - Hard (aggressive scan)\n");
-    printf("4 - Hard Full (all ports aggressive scan)\n");
-    printf("Enter your choice (1/2/3/4): ");
-    scanf(" %d", &intensity_choice);
+    int opt;
+    while ((opt = getopt(argc, argv, "ht:i:u:o:")) != -1) {
+        switch (opt) {
+            case 'h':
+                print_help();
+                return 0;
+            case 't':
+                strncpy(input, optarg, sizeof(input) - 1);
+                break;
+            case 'i':
+                intensity_choice = atoi(optarg);
+                if (intensity_choice < 1 || intensity_choice > 4) {
+                    fprintf(stderr, "Invalid intensity choice. Must be between 1 and 4.\n");
+                    return 1;
+                }
+                break;
+            case 'u':
+                strncpy(url, optarg, sizeof(url) - 1);
+                break;
+            case 'o':
+                strncpy(output_file_path, optarg, sizeof(output_file_path) - 1);
+                break;
+            default:
+                print_help();
+                return 1;
+        }
+    }
 
-    printf("Enter the output file path (leave empty for no file): ");
-    getchar(); // Clear newline from input buffer
-    fgets(output_file_path, sizeof(output_file_path), stdin);
-    output_file_path[strcspn(output_file_path, "\n")] = 0;
+    if (strlen(input) == 0) {
+        printf("Enter the target (IP or domain): ");
+        scanf(" %99s", input);
+    }
+
+    if (intensity_choice == 0) {
+        printf("Choose scan intensity:\n");
+        printf("1 - Light (ping scan)\n");
+        printf("2 - Medium (stealth scan)\n");
+        printf("3 - Hard (aggressive scan)\n");
+        printf("4 - Hard Full (all ports aggressive scan)\n");
+        printf("Enter your choice (1/2/3/4): ");
+        scanf(" %d", &intensity_choice);
+        if (intensity_choice < 1 || intensity_choice > 4) {
+            fprintf(stderr, "Invalid choice. Defaulting to Light scan.\n");
+            intensity_choice = 1;
+        }
+    }
+
+    if (intensity_choice >= 2 && geteuid() != 0) {
+        fprintf(stderr, "Error: Scan intensity level %d requires root privileges.\n", intensity_choice);
+        return 1;
+    }
+
+    if (strlen(output_file_path) == 0) {
+        printf("Enter the output file path (leave empty for no file): ");
+        getchar();
+        fgets(output_file_path, sizeof(output_file_path), stdin);
+        output_file_path[strcspn(output_file_path, "\n")] = 0;
+    }
 
     if (strlen(output_file_path) > 0) {
         output_file = fopen(output_file_path, "w");
         if (!output_file) {
-            printf("Error: Unable to open file %s for writing.\n", output_file_path);
+            fprintf(stderr, "Error: Unable to open file %s for writing.\n", output_file_path);
             return 1;
         }
     }
@@ -172,9 +226,6 @@ int main() {
         case 4:
             scan_args[0] = "Hard Full";
             break;
-        default:
-            printf("Invalid choice. Defaulting to Light scan.\n");
-            scan_args[0] = "Light";
     }
     pthread_create(&scan_thread, NULL, perform_scan, scan_args);
 
