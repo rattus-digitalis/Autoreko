@@ -16,10 +16,10 @@ int perform_nmap_scan(const char *target, int intensity) {
             snprintf(command, sizeof(command), "nmap -F %s", target); // Scan rapide
         break;
         case 3:
-            snprintf(command, sizeof(command), "nmap %s", target); // Scan par défaut
+            snprintf(command, sizeof(command), "nmap -T4 -A %s", target); // Scan par défaut
         break;
         case 4:
-            snprintf(command, sizeof(command), "nmap -T4 -A -v %s", target); // Scan intensif
+            snprintf(command, sizeof(command), "nmap -T4 -A -p- %s", target); // Scan intensif
         break;
         default:
             printf("Error: Invalid scan intensity.\n");
