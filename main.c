@@ -111,6 +111,12 @@ void *validate_ip(void *input) {
     pthread_exit(NULL);
 }
 
+void perform_fuzzing(const char *wordlist_path) {
+    char command[256];
+    snprintf(command, sizeof(command), "ffuf -w %s -u TARGET_URL", wordlist_path);
+    execute_command("Fuzzing with Wordlist", command);
+}
+
 void print_help() {
     printf("Usage:\n");
     printf("  -h            Display this help message\n");
@@ -118,6 +124,7 @@ void print_help() {
     printf("  -i <Intensity>  Specify the scan intensity (1-4)\n");
     printf("  -u <URL>       Specify the URL to validate\n");
     printf("  -o <File>      Specify the output file\n");
+    printf("  -W <Wordlist>  Specify the wordlist for fuzzing\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -125,19 +132,19 @@ int main(int argc, char *argv[]) {
     int intensity_choice = 0;
     char output_file_path[256] = {0};
     char url[256] = {0};
+    char wordlist_path[256] = {0};
 
     printf("          _    _ _______ ____         _____      _     ___  \n");
     printf("     /\\  | |  | |__   __/ __ \\       |  __ \\    | |   / _ \\ \n");
-    printf("    /  \\ | |  | |  | | | |  | |______| |__) |___| | _| | | |\n");
-    printf("   / /\\ \\| |  | |  | | | |  | |______|  _  // _ \\ |/ / | | |\n");
-    printf("  / ____ \\ |__| |  | | | |__| |      | | \\ \\  __/   <| |_| |\n");
-    printf(" /_/    \\_\\____/   |_|  \\____/       |_|  \\_\\___|_|\\_\\\\___/ \n");
+    printf("    /  \\\ | |  | |  | | | |  | |______| |__) |___| | _| | | |\n");
+    printf("   / /\\ \\\| |  | |  | | | |  | |______|  _  // _ \\\ |/ / | | |\n");
+    printf("  / ____ \\\ |__| |  | | | |__| |      | | \\\ \\\  __/   <| |_| |\n");
+    printf(" /_/    \\\\\\____/   |_|  \\\\____/       |_|  \\\\\\\___|_|\\_\\\\___/ \n");
     printf("                                                            \n");
     printf("                                                            \n");
-
 
     int opt;
-    while ((opt = getopt(argc, argv, "ht:i:u:o:")) != -1) {
+    while ((opt = getopt(argc, argv, "ht:i:u:o:W:")) != -1) {
         switch (opt) {
             case 'h':
                 print_help();
@@ -157,6 +164,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'o':
                 strncpy(output_file_path, optarg, sizeof(output_file_path) - 1);
+                break;
+            case 'W':
+                strncpy(wordlist_path, optarg, sizeof(wordlist_path) - 1);
                 break;
             default:
                 print_help();
@@ -201,6 +211,11 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Error: Unable to open file %s for writing.\n", output_file_path);
             return 1;
         }
+    }
+
+    if (strlen(wordlist_path) > 0) {
+        printf("\nUsing wordlist: %s\n", wordlist_path);
+        perform_fuzzing(wordlist_path);
     }
 
     printf("\nLaunching tests for target: %s with intensity level %d\n", input, intensity_choice);
