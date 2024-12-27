@@ -1,5 +1,7 @@
 # Autoreko
 
+
+
 ```
      _        _____           ____      _     ___  
     / \  _   |_   _|__       |  _ \ ___| | __/ _ \ 
@@ -32,15 +34,20 @@ Autoreko is currently under development and will be available soon. Stay tuned f
 To use Autoreko, follow these examples:
 
 ### Basic Enumeration
+
 Run a standard enumeration with the following command:
 
 ```bash
-autoreko -t <target_ip> -i <intensity_level> -o <output>
+autoreko -t <target_ip> -i <intensity_level> -o <output_file>
 ```
 
-`-i` specifies the intensity level of the scan, ranging from 1 (low) to 4 (high).
+- `-t` specifies the target IP address (IPv4 or IPv6).
+- `-i` specifies the intensity level of the scan, ranging from 1 (low) to 4 (high). Note: Intensity levels 3 and 4 require `root` privileges.
+- `-u` specifies a target URL for enumeration.
+- `-o` specifies the output file (e.g., `results.txt`) where the scan results will be saved.
 
 ### Advanced Options
+
 Explore additional capabilities and options:
 
 ```bash
@@ -48,10 +55,17 @@ autoreko -h
 ```
 
 ### Example Usage
-Save results to a directory with detailed logging enabled:
+
+Save results to a text file with detailed logging enabled:
 
 ```bash
-autoreko -t 192.168.1.1 -i 3 -o output.txt
+autoreko -t 192.168.1.1 -i 3 -o /home/results.txt 
+```
+
+Alternatively, specify a URL:
+
+```bash
+autoreko -u https://example.com -i 2 
 ```
 
 ---
@@ -61,7 +75,7 @@ autoreko -t 192.168.1.1 -i 3 -o output.txt
 This project is developed and maintained by:
 
 - **@Rattus**
-- **@BrB93**
+- **@BrB93** 
 
 Feel free to reach out for suggestions, bug reports, or contributions!
 
