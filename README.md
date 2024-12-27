@@ -1,4 +1,4 @@
-p# Autoreko
+# Autoreko
 
 ```
      _        _____           ____      _     ___  
@@ -29,22 +29,39 @@ Autoreko is currently under development and will be available soon. Stay tuned f
 
 ## 🚀 Usage
 
-Run a basic enumeration command:
+To use Autoreko, follow these examples:
+
+### Basic Enumeration
+Run a standard enumeration with the following command:
 
 ```bash
-autoreko <target_ip> -o <output_directory>
+autoreko -t <target_ip> -i <intensity_level> -o <output>
 ```
 
-For advanced options:
+`-i` specifies the intensity level of the scan, ranging from 1 (low) to 4 (high).
+
+### Advanced Options
+Explore additional capabilities and options:
 
 ```bash
 autoreko -h
+```
+
+### Example Usage
+Save results to a directory with detailed logging enabled:
+
+```bash
+autoreko -t 192.168.1.1 -i 3 -o output.txt
 ```
 
 ---
 
 ## 👥 Authors
 
+This project is developed and maintained by:
+
 - **@Rattus**
 - **@BrB93**
+
+Feel free to reach out for suggestions, bug reports, or contributions!
 
