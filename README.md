@@ -32,7 +32,7 @@ Autoreko is currently under development and will be available soon. Stay tuned f
 Run a basic enumeration command:
 
 ```bash
-autoreko -t target_ip -o output_directory
+autoreko <target_ip> -o <output_directory>
 ```
 
 For advanced options:
