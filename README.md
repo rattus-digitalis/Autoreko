@@ -1,4 +1,4 @@
-# AutO-RekO
+# Autoreko
 
 ```
      _        _____           ____      _     ___  
@@ -9,7 +9,7 @@
                                                    
 ```
 
-**AutO-RekO** is an automatic enumeration tool designed to accelerate and optimize the reconnaissance phase during penetration tests.
+**Autoreko** is an automatic enumeration tool designed to accelerate and optimize the reconnaissance phase during penetration tests.
 
 ---
 
@@ -21,20 +21,9 @@
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Development Status
 
-Follow these steps to install AutO-RekO:
-
-```bash
-# Clone the repository
-git clone https://github.com/your-repo/autoreko.git
-
-# Navigate to the project directory
-cd autoreko
-
-# Install dependencies
-pip install -r requirements.txt
-```
+Autoreko is currently under development and will be available soon. Stay tuned for updates!
 
 ---
 
@@ -43,13 +32,13 @@ pip install -r requirements.txt
 Run a basic enumeration command:
 
 ```bash
-python autoreko.py -t target_ip -o output_directory
+autoreko -t target_ip -o output_directory
 ```
 
 For advanced options:
 
 ```bash
-python autoreko.py --help
+autoreko --help
 ```
 
 ---
