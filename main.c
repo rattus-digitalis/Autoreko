@@ -1,122 +1,140 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
+#include <ctype.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <pthread.h>
 
-// Function to check if the input is a valid IPv4 address
 int is_ipv4_address(const char *input) {
-    int dots = 0;
-    const char *ptr = input;
-
-    while (*ptr) {
-        if (*ptr == '.') {
-            dots++;
-        } else if (!isdigit(*ptr)) {
-            return 0;
-        }
-        ptr++;
-    }
-    return dots == 3;
+    struct sockaddr_in sa;
+    return inet_pton(AF_INET, input, &(sa.sin_addr)) != 0;
 }
 
-// Function to check if the input is a valid IPv6 address
 int is_ipv6_address(const char *input) {
-    int colons = 0;
-    const char *ptr = input;
-
-    while (*ptr) {
-        if (*ptr == ':') {
-            colons++;
-        } else if (!isxdigit(*ptr)) {
-            return 0;
-        }
-        ptr++;
-    }
-    return colons >= 2 && colons <= 7;
+    struct sockaddr_in6 sa6;
+    return inet_pton(AF_INET6, input, &(sa6.sin6_addr)) != 0;
 }
 
-// Function to scan a target using nmap with the specified scan level
-void scan_with_nmap(const char *target, const char *level) {
-    char command[256];
+void *perform_dns_lookup(void *hostname) {
+    struct hostent *host;
+    struct in_addr **addr_list;
 
-    if (strcmp(level, "soft") == 0) {
-        snprintf(command, sizeof(command), "nmap -sP %s", target);
-    } else if (strcmp(level, "medium") == 0) {
-        snprintf(command, sizeof(command), "nmap -sS %s", target);
-    } else if (strcmp(level, "hard") == 0) {
-        snprintf(command, sizeof(command), "nmap -A -sV   %s", target);
+    printf("Starting DNS Lookup...\n");
+
+    if ((host = gethostbyname((char *)hostname)) == NULL) {
+        printf("DNS lookup failed for %s\n", (char *)hostname);
+        pthread_exit(NULL);
+    }
+
+    addr_list = (struct in_addr **)host->h_addr_list;
+    printf("DNS lookup results for %s:\n", (char *)hostname);
+    for (int i = 0; addr_list[i] != NULL; i++) {
+        printf("  - %s\n", inet_ntoa(*addr_list[i]));
+    }
+
+    pthread_exit(NULL);
+}
+
+void *perform_light_scan(void *target) {
+    char *ip = (char *)target;
+    printf("Performing light scan on %s...\n", ip);
+    char command[128];
+    snprintf(command, sizeof(command), "nmap -sP %s", ip);
+    system(command);
+    pthread_exit(NULL);
+}
+
+void *perform_medium_scan(void *target) {
+    if (geteuid() != 0) {
+        printf("Medium scan requires sudo privileges. Please run the program as root.\n");
+        pthread_exit(NULL);
+    }
+    char *ip = (char *)target;
+    printf("Performing medium scan on %s...\n", ip);
+    char command[128];
+    snprintf(command, sizeof(command), "nmap -v -sS %s", ip);
+    system(command);
+    pthread_exit(NULL);
+}
+
+void *perform_full_scan(void *target) {
+    if (geteuid() != 0) {
+        printf("Full scan requires sudo privileges. Please run the program as root.\n");
+        pthread_exit(NULL);
+    }
+    char *ip = (char *)target;
+    printf("Performing full scan on %s...\n", ip);
+    char command[128];
+    snprintf(command, sizeof(command), "nmap -A -p- %s", ip);
+    system(command);
+    pthread_exit(NULL);
+}
+
+void *validate_ip(void *input) {
+    char *ip = (char *)input;
+
+    printf("Starting IP validation...\n");
+
+    if (is_ipv4_address(ip)) {
+        printf("%s is a valid IPv4 address.\n", ip);
+    } else if (is_ipv6_address(ip)) {
+        printf("%s is a valid IPv6 address.\n", ip);
     } else {
-        printf("Invalid scan level. Defaulting to soft scan.\n");
-        snprintf(command, sizeof(command), "nmap -sP %s", target);
+        printf("%s is not a valid IP address.\n", ip);
     }
 
-    int result = system(command);
-    if (result != 0) {
-        printf("Nmap scan failed.\n");
-    }
+    pthread_exit(NULL);
 }
 
-// Function to analyze the input and perform the scan
-void analyze_input(const char *input, const char *level) {
-    if (is_ipv4_address(input)) {
-        printf("The input is a valid IPv4 address.\n");
-        scan_with_nmap(input, level);
-    } else if (is_ipv6_address(input)) {
-        printf("The input is a valid IPv6 address.\n");
-        scan_with_nmap(input, level);
-    } else {
-        printf("The input is not a valid IPv4 or IPv6 address.\n");
-    }
-}
-
-// Function to ask for user input and process it
-void ask_and_display_char() {
+int main() {
     char input[100];
-    int level_choice;
-    char *level;
+    int intensity_choice;
+    pthread_t dns_thread, scan_thread, ip_thread;
 
-    printf("Enter the target: ");
+    printf("          _    _ _______ ____         _____      _     ___  \n");
+    printf("     /\\  | |  | |__   __/ __ \\       |  __ \\    | |   / _ \\ \n");
+    printf("    /  \\ | |  | |  | | | |  | |______| |__) |___| | _| | | |\n");
+    printf("   / /\\ \\| |  | |  | | | |  | |______|  _  // _ \\ |/ / | | |\n");
+    printf("  / ____ \\ |__| |  | | | |__| |      | | \\ \\  __/   <| |_| |\n");
+    printf(" /_/    \\_\\____/   |_|  \\____/       |_|  \\_\\___|_|\\_\\\\___/ \n");
+    printf("                                                            \n");
+    printf("                                                            \n");
+
+
+    printf("Enter the target (IP or domain): ");
     scanf(" %99s", input);
 
-    printf("Choose scan level:\n");
-    printf("1 - Light (soft scan)\n");
+    printf("Choose scan intensity:\n");
+    printf("1 - Light (ping scan)\n");
     printf("2 - Medium (stealth scan)\n");
-    printf("3 - Hard (aggressive full scan with vulnerability check)\n");
+    printf("3 - Full (aggressive scan)\n");
     printf("Enter your choice (1/2/3): ");
-    scanf(" %d", &level_choice);
+    scanf(" %d", &intensity_choice);
 
-    if (level_choice == 1) {
-        level = "soft";
-    } else if (level_choice == 2) {
-        level = "medium";
-    } else if (level_choice == 3) {
-        level = "hard";
+    printf("Launching all tests on %s with intensity %d...\n", input, intensity_choice);
+
+    pthread_create(&dns_thread, NULL, perform_dns_lookup, (void *)input);
+    pthread_create(&ip_thread, NULL, validate_ip, (void *)input);
+
+    if (intensity_choice == 1) {
+        pthread_create(&scan_thread, NULL, perform_light_scan, (void *)input);
+    } else if (intensity_choice == 2) {
+        pthread_create(&scan_thread, NULL, perform_medium_scan, (void *)input);
+    } else if (intensity_choice == 3) {
+        pthread_create(&scan_thread, NULL, perform_full_scan, (void *)input);
     } else {
-        printf("Invalid choice. Defaulting to Light (soft scan).\n");
-        level = "soft";
+        printf("Invalid choice. Defaulting to Light scan.\n");
+        pthread_create(&scan_thread, NULL, perform_light_scan, (void *)input);
     }
 
-    printf("You entered: %s\n", input);
-    printf("Scan level: %s\n", level);
+    pthread_join(dns_thread, NULL);
+    pthread_join(scan_thread, NULL);
+    pthread_join(ip_thread, NULL);
 
-    analyze_input(input, level);
-}
-
-// Main function
-int main() {
-printf("          _    _ _______ ____         _____      _     ___  \n");
-printf("     /\\  | |  | |__   __/ __ \\       |  __ \\    | |   / _ \\ \n");
-printf("    /  \\ | |  | |  | | | |  | |______| |__) |___| | _| | | |\n");
-printf("   / /\\ \\| |  | |  | | | |  | |______|  _  // _ \\ |/ / | | |\n");
-printf("  / ____ \\ |__| |  | | | |__| |      | | \\ \\  __/   <| |_| |\n");
-printf(" /_/    \\_\\____/   |_|  \\____/       |_|  \\_\\___|_|\\_\\\\___/ \n");
-printf("                                                            \n");
-printf("                                                            \n");
-
-
-
-    printf("Bienvenue dans le programme !\n");
-    ask_and_display_char();
+    printf("All tests completed.\n");
     return 0;
 }
-
