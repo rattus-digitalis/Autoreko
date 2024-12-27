@@ -1,5 +1,4 @@
-autoreko/
-├── src/                    # Dossier contenant tous les fichiers source
+autoreko/                   # Dossier contenant tous les fichiers source
 │   ├── main.c              # Fichier principal de l'application
 │   ├── utils.c             # Fonctions utilitaires générales (ex. validation IP)
 │   ├── utils.h             # Déclarations des fonctions utilitaires
