@@ -56,20 +56,33 @@ void *perform_medium_scan(void *target) {
     char *ip = (char *)target;
     printf("Performing medium scan on %s...\n", ip);
     char command[128];
-    snprintf(command, sizeof(command), "nmap -v -sS %s", ip);
+    snprintf(command, sizeof(command), "nmap -v -sS  %s", ip);
     system(command);
     pthread_exit(NULL);
 }
 
-void *perform_full_scan(void *target) {
+void *perform_hard_scan(void *target) {
     if (geteuid() != 0) {
-        printf("Full scan requires sudo privileges. Please run the program as root.\n");
+        printf("Hard scan requires sudo privileges. Please run the program as root.\n");
         pthread_exit(NULL);
     }
     char *ip = (char *)target;
-    printf("Performing full scan on %s...\n", ip);
+    printf("Performing hard scan on %s...\n", ip);
     char command[128];
-    snprintf(command, sizeof(command), "nmap -A -p- %s", ip);
+    snprintf(command, sizeof(command), "nmap -v -A -sV  %s", ip);
+    system(command);
+    pthread_exit(NULL);
+}
+
+void *perform_hard_full_scan(void *target) {
+    if (geteuid() != 0) {
+        printf("Hard Full scan requires sudo privileges. Please run the program as root.\n");
+        pthread_exit(NULL);
+    }
+    char *ip = (char *)target;
+    printf("Performing hard full scan on %s...\n", ip);
+    char command[128];
+    snprintf(command, sizeof(command), "nmap -v -A -sV -p-  %s", ip);
     system(command);
     pthread_exit(NULL);
 }
@@ -111,8 +124,9 @@ int main() {
     printf("Choose scan intensity:\n");
     printf("1 - Light (ping scan)\n");
     printf("2 - Medium (stealth scan)\n");
-    printf("3 - Full (aggressive scan)\n");
-    printf("Enter your choice (1/2/3): ");
+    printf("3 - Hard (aggressive scan)\n");
+    printf("4 - Hard Full (all ports aggressive scan)\n");
+    printf("Enter your choice (1/2/3/4): ");
     scanf(" %d", &intensity_choice);
 
     printf("Launching all tests on %s with intensity %d...\n", input, intensity_choice);
@@ -125,7 +139,9 @@ int main() {
     } else if (intensity_choice == 2) {
         pthread_create(&scan_thread, NULL, perform_medium_scan, (void *)input);
     } else if (intensity_choice == 3) {
-        pthread_create(&scan_thread, NULL, perform_full_scan, (void *)input);
+        pthread_create(&scan_thread, NULL, perform_hard_scan, (void *)input);
+    } else if (intensity_choice == 4) {
+        pthread_create(&scan_thread, NULL, perform_hard_full_scan, (void *)input);
     } else {
         printf("Invalid choice. Defaulting to Light scan.\n");
         pthread_create(&scan_thread, NULL, perform_light_scan, (void *)input);
@@ -138,3 +154,4 @@ int main() {
     printf("All tests completed.\n");
     return 0;
 }
+
