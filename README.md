@@ -42,7 +42,7 @@ autoreko -t <target_ip> -i <intensity_level> -o <output_file>
 ```
 
 - `-t` specifies the target IP address (IPv4 or IPv6).
-- `-i` specifies the intensity level of the scan, ranging from 1 (low) to 4 (high). Note: Intensity levels 3 and 4 require `root` privileges.
+- `-i` specifies the intensity level of the scan, ranging from 1 (low) to 4 (high). Note: Intensity levels 2, levels 3 and 4 require `root` privileges.
 - `-u` specifies a target URL for enumeration.
 - `-o` specifies the output file (e.g., `results.txt`) where the scan results will be saved.
 
