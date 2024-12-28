@@ -23,7 +23,7 @@ int is_url(const char *input) {
         return 0;
     }
 
-    reti = regexec(&regex, input, 0, NULL, 0); // NULL est maintenant reconnu
+    reti = regexec(&regex, input, 0, NULL, 0);
     regfree(&regex);
 
     return reti == 0;
