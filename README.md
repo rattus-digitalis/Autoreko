@@ -95,3 +95,6 @@ This project is developed and maintained by:
 - **@BrB93** 
 
 Feel free to reach out for suggestions, bug reports, or contributions!
+
+
+![Logo](logo.svg)
