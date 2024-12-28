@@ -15,16 +15,19 @@ int is_ipv6(const char *input) {
 
 int is_url(const char *input) {
     regex_t regex;
-    int reti;
+    int result;
 
+    // Regex pour valider les URL basiques
     const char *pattern = "^(https?://)?([a-zA-Z0-9.-]+)(:[0-9]+)?(/.*)?$";
-    reti = regcomp(&regex, pattern, REG_EXTENDED | REG_ICASE);
-    if (reti) {
-        return 0;
+
+    // Compile le regex
+    if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB) != 0) {
+        return 0; // Erreur dans la compilation du regex
     }
 
-    reti = regexec(&regex, input, 0, NULL, 0);
+    // Exécute le regex
+    result = regexec(&regex, input, 0, NULL, 0);
     regfree(&regex);
 
-    return reti == 0;
+    return (result == 0); // Retourne 1 si l'URL est valide
 }

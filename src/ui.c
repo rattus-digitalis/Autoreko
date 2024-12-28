@@ -2,6 +2,8 @@
 #include "ui.h"
 #include <string.h>
 
+
+
 void displayAsciiArt() {
     FILE *file = fopen("ascii.txt", "r");
     if (file == NULL) {
@@ -21,7 +23,8 @@ void displayHelp() {
     printf("Usage: ./autoreko [OPTIONS] [INPUT]\n");
     printf("  -h            Display this help message\n");
     printf("Options:\n");
-    printf("  -t <ip/url>   Test if the service at the IP or URL is accessible\n");
+    printf("  -t <ip>       Test if the service at the IP or URL is accessible\n");
+    printf("  -u <url>      Test if the service at the URL is accessible\n");
     printf("  -o <file>     Output the result to the specified file\n");
     printf("\n");
     printf("  -i            Prompt the user to choose the scan intensity interactively\n");
