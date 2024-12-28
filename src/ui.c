@@ -24,10 +24,10 @@ void displayHelp() {
     printf("  -o <file>     Output the result to the specified file\n");
     printf("  -i            Prompt the user to choose the scan intensity interactively\n");
     printf("                 Offers choices from:\n");
-    printf("                   1: Light scan (ping only, nmap -sn)\n");
-    printf("                   2: Fast scan (nmap -F)\n");
-    printf("                   3: Default scan (nmap)\n");
-    printf("                   4: Intensive scan with all ports (nmap -T4 -A -p-)\n");
+    printf("                   1: Light scan \n");
+    printf("                   2: Fast scan \n");
+    printf("                   3: Default scan \n");
+    printf("                   4: Intensive scan with all ports\n");
     printf("  -h            Display this help message\n");
     printf("\n");
     printf("If no options are provided, the program will ask for a target and intensity.\n");
@@ -38,10 +38,10 @@ int chooseScanIntensity() {
     int intensity = 0;
     while (intensity < 1 || intensity > 4) {
         printf("Select Nmap Scan Intensity:\n");
-        printf("  1. Light scan (ping only, nmap -sn)\n");
-        printf("  2. Fast scan (nmap -F)\n");
-        printf("  3. Default scan (nmap)\n");
-        printf("  4. Intensive scan with all ports (nmap -T4 -A -p-)\n");
+        printf("  1. Light scan \n");
+        printf("  2. Fast scan \n");
+        printf("  3. Default scan \n");
+        printf("  4. Intensive scan with all ports \n");
         printf("Enter the intensity level (1-4): ");
         if (scanf("%d", &intensity) != 1) {
             while (getchar() != '\n'); // Clear invalid input
