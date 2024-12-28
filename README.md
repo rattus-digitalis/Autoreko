@@ -34,7 +34,7 @@ AutO-RekO is currently under development and will be available soon. Stay tuned 
 To get started with **AutO-RekO**, simply run it without any options:
 
 ```bash
-./autoreko  #Without install
+./autoreko  #Without make install
 autoreko
 ```
 
