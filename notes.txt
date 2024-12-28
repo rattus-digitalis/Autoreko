@@ -14,6 +14,8 @@ autoreko/
 │
 ├── docs                     # Documentation
 │
+├── ascii.txt                # ascii ui
+├── logo.svg                 # logo
 ├── Notes                    # BlocNotes
 ├── Makefile                 # Makefile principal
 ├── README.md                # Documentation principale
