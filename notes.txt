@@ -13,10 +13,14 @@ autoreko/
 │   └── ui.h                 # Header pour ui.c
 │
 ├── docs                     # Documentation
-│
 ├── ascii.txt                # ascii ui
 ├── logo.svg                 # logo
 ├── Notes                    # BlocNotes
 ├── Makefile                 # Makefile principal
 ├── README.md                # Documentation principale
 └── LICENSE                  # Licence du projet
+
+Lors de la vérification de l'IP ou de l'URL, effectuer un ping afin de vérifier l'ouverture du serveur.
+hardware
+
+strorie insta
