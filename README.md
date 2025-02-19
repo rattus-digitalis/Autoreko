@@ -13,7 +13,7 @@
 
 ---
 
-## ⚙️ Development Status
+## ⚙️ Development Status {Currently in development}
 
 AutO-RekO is currently under development and will be available soon. Stay tuned for updates!
 
